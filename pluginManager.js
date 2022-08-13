@@ -239,7 +239,7 @@ export async function extensionList(e){
 		sendMsg.push(tempMsg);
 		//
 		if(e.isGroup) e.reply(await e.group.makeForwardMsg(sendMsg));
-		else e.reply(await Bot.pickUser(e.user_id).makeForwardMsg(sendMsg));
+		else e.reply(await e.friend.makeForwardMsg(sendMsg));
 		//
 	}else e.reply("啊这，一个插件都木有？！ Σ(ﾟДﾟ|||)");
 	//
@@ -374,15 +374,17 @@ export async function uploadFileAdd(e){
 			return;
 		}
 		//
-		let fileUrl = await e.friend.getFileUrl(e.file.fid);
+		delete isUpload[e.user_id];
+		//
+		let fileUrl;
+		if(e.isGroup) fileUrl = await e.group.getFileUrl(e.file.fid);
+		else fileUrl = await e.friend.getFileUrl(e.file.fid);
 		//
 		const response = await fetch(fileUrl);
 		const streamPipeline = promisify(pipeline);
 		await streamPipeline(response.body, fs.createWriteStream(_storagePath));
 		//
 		e.reply("安装成功，可使用 #插件列表 检查是否正确安装");
-		//
-		delete isUpload[e.user_id];
 		//
 	}
 	//
