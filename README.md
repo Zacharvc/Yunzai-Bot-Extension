@@ -1,2 +1,2 @@
 # Yunzai-Bot-Extension
-存放在Github用于快捷安装
+请自行下载插件文件安装
