@@ -1,2 +1,2 @@
 # Yunzai-Bot-Extension
-云崽插件
+存放在Github用于快捷安装
