@@ -250,15 +250,24 @@ export class pluginManager extends plugin{
 					"◎｜#开启(关闭)插件+序号", "\n",
 					"◎｜#确定删除文件+序号", "\n",
 					"◎｜#撤销删除", "\n",
-					"➥括号内为可选项目", "\n",
+					"➥上述内容无需加号", "\n",
+					"➥括号内为可选项目，其功能如名", "\n",
 					"➥更新插件后请手动重启确保正常应用！"
 				]
 			};
 			//
 			sendMsg.push(tempMsg);
 			//
-			if(e.isGroup) e.reply(await e.group.makeForwardMsg(sendMsg));
-			else e.reply(await e.friend.makeForwardMsg(sendMsg));
+			let forwardTitle = `共计 ${extensionNum} 个文件`;
+			forwardTitle = `<title color="#777777" size="26">${forwardTitle}</title>`;
+			//
+			let forwardMsg;
+			if(e.isGroup) forwardMsg = await e.group.makeForwardMsg(sendMsg);
+			else if(e.isPrivate) forwardMsg = await e.friend.makeForwardMsg(sendMsg);
+			//plugins/system/add.js
+			forwardMsg.data = forwardMsg.data.replace(/\n/g, "").replace(/<title color="#([a-zA-Z0-9]+?)" size="(.+?)">(.+?)<\/title>/g, "___").replace(/(___)+/g, forwardTitle);
+			//
+			e.reply(forwardMsg);
 			//
 		}else e.reply("啊这，一个插件都木有？！ Σ(ﾟДﾟ|||)");
 		//
@@ -473,13 +482,16 @@ export class pluginManager extends plugin{
 			if(!isUpload[e.user_id]["hasMore"]){
 				//
 				delete isUpload[e.user_id];
-				e.reply("安装成功，可使用 #插件列表 检查是否正确安装");
+				//
+				if(response.ok) e.reply("安装成功，可使用 #插件列表 检查是否正确安装");
+				else e.reply("安装失败: 文件下载失败");
 			}else{
 				//
 				if(isUpload[e.user_id] && !isUpload[e.user_id]["num"]) isUpload[e.user_id]["num"] = 0;
 				isUpload[e.user_id]["num"] += 1;
 				//
-				e.reply("安装成功，请继续发送需要安装的文件或者使用 #结束安装 来完成安装");
+				if(response.ok) e.reply("安装成功，请继续发送需要安装的文件或者使用 #结束安装 来完成安装");
+				else e.reply("安装失败: 文件下载失败，请发送新文件...");
 				//
 				cancelDelay = setTimeout(() => {
 					if(isUpload[e.user_id]){
