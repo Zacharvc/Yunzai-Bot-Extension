@@ -12,9 +12,10 @@ const _extensionPath = "./plugins/example/";
 
 const BotConfig = YAML.parse(fs.readFileSync("././config/config/qq.yaml", "utf-8").toString());
 
+//卖萌提示
 let notInputFile = "请发送文件对应的序号或者文件名(•́ω•̀ ٥)";
 
-//maxSize: 单个插件最大存储，6M; 自动取消时间(单位毫秒)
+//maxSize: 单个插件最大存储，6M; waitUploadTime: 自动取消时间(单位毫秒)
 let maxSize = 6291456, isUpload = {}, waitUploadTime = 90000, cancelDelay;
 let extensionFileData = {}, tempBackDir = _extensionPath + ".tempBackup/";
 
@@ -84,17 +85,17 @@ const int2Number = {
 	"20": "⓴"
 };
 
+//数字转换为序号(1-20)
 Number.prototype.toCount = function(){
-	
 	let output = this.toString();
-	
+	//
 	let mainKeys = Object.keys(int2Number);
-	
 	if(mainKeys.includes(output)) output = int2Number[this];
-	
+	//输出
 	return output;
 };
 
+//判断是否是Integer
 String.prototype.isInteger = function(){
 	return (!isNaN(this) && (parseInt(this).toString().length === this.length));
 };
@@ -105,8 +106,8 @@ export class pluginManager extends plugin{
 			name: "插件管理",
 			dsc: "插件管理器",
 			event: "message",
-			priority: 90000,
-			
+			priority: 100000,
+			//插件规则
 			rule: [
 				{
 					reg: "^#*插件(列表|管理)$",
@@ -140,7 +141,7 @@ export class pluginManager extends plugin{
 
 	async extensionList(e){
 		
-		//if(!e.isMaster) return false; //注释掉给群友开放权限
+		//if(!e.isMaster) return false; //注释掉即给群友开放权限
 		
 		extensionFileData = {};
 		
@@ -273,7 +274,7 @@ export class pluginManager extends plugin{
 		
 		if(/^#*(开启|启用|打开|启动)插件(.*)$/.test(e.msg)){
 			//开启
-			let count = e.msg.replace(/#*(开启|启用|打开)插件/g, "").trim();
+			let count = e.msg.replace(/#*(开启|启用|打开|启动)插件/g, "").trim();
 			
 			let tempFile;
 			if(Object.keys(extensionFileData).includes(count) || (!count.isInteger() && fs.existsSync(`${_extensionPath + count}`) && count.length > 0)){
@@ -460,7 +461,7 @@ export class pluginManager extends plugin{
 			let fileUrl;
 			if(e.isGroup) fileUrl = await e.group.getFileUrl(e.file.fid);
 			else fileUrl = await e.friend.getFileUrl(e.file.fid);
-			
+			//抓取&下载文件
 			const response = await fetch(fileUrl);
 			const streamPipeline = promisify(pipeline);
 			await streamPipeline(response.body, fs.createWriteStream(_storagePath));
