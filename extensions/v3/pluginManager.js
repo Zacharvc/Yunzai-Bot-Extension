@@ -1,3 +1,4 @@
+import plugin from "../../../lib/plugins/plugin.js"
 import {segment} from "oicq";
 import {pipeline} from "stream";
 import {promisify} from "util";
@@ -13,7 +14,11 @@ const _extensionPath = "./plugins/example/";
 const BotConfig = YAML.parse(fs.readFileSync("././config/config/qq.yaml", "utf-8").toString());
 
 //卖萌提示
-let notInputFile = "请发送文件对应的序号或者文件名(•́ω•̀ ٥)";
+let notice = {
+	"noInput": "请发送文件对应的序号或者文件名(•́ω•̀ ٥)",
+	"noFile": "啊这，一个插件都木有？！ Σ(ﾟДﾟ|||)",
+	"noData": "数据不完整，建议使用 #插件管理 初始化数据(⑉• •⑉)"
+}
 
 //maxSize: 单个插件最大存储，6M; waitUploadTime: 自动取消时间(单位毫秒)
 let maxSize = 6291456, isUpload = {}, waitUploadTime = 90000, cancelDelay;
@@ -256,7 +261,7 @@ export class pluginManager extends plugin{
 			
 			this.reply(forwardMsg);
 			
-		}else this.reply("啊这，一个插件都木有？！ Σ(ﾟДﾟ|||)", e.isGroup);
+		}else this.reply(notice.noFile, e.isGroup);
 		
 		return true;
 	};
@@ -267,7 +272,7 @@ export class pluginManager extends plugin{
 		
 		if(Object.keys(extensionFileData).length <= 0){
 			
-			this.reply("数据不完整，建议使用 #插件管理 初始化数据", e.isGroup);
+			this.reply(notice.noData, e.isGroup);
 			
 			return false;
 		}
@@ -290,7 +295,7 @@ export class pluginManager extends plugin{
 					if(!/(\.js)$/.test(afterFile)) afterFile += ".js";
 					fs.rename(`${_extensionPath + tempFile}`, `${_extensionPath + afterFile}`, (error) => {
 						
-						if(error) console.log("文件重命名失败了～");
+						if(error) console.log("文件重命名失败");
 					});
 					
 					this.reply(`【${tempFileName}】已开启`, e.isGroup);
@@ -298,7 +303,7 @@ export class pluginManager extends plugin{
 					extensionFileDataInit(true);
 				}
 			}else{
-				if(count.length == 0) this.reply(notInputFile, e.isGroup);
+				if(count.length == 0) this.reply(notice.noInput, e.isGroup);
 				else this.reply(`没有找到“${count}”所对应的文件(。_。)`, e.isGroup);
 			}
 		}else if(/^#*(关闭|停用)插件(.*)$/.test(e.msg)){
@@ -319,7 +324,7 @@ export class pluginManager extends plugin{
 					if(!/(\.unable)$/.test(afterFile)) afterFile += ".unable"; //停用插件后修改的后缀名
 					fs.rename(`${_extensionPath + tempFile}`, `${_extensionPath + afterFile}`, (error) => {
 						
-						if(error) console.log("文件重命名失败了～");
+						if(error) console.log("文件重命名失败");
 					});
 					
 					this.reply(`【${tempFileName}】已关闭`, e.isGroup);
@@ -327,7 +332,7 @@ export class pluginManager extends plugin{
 					extensionFileDataInit(true);
 				}
 			}else{
-				if(count.length == 0) this.reply(notInputFile, e.isGroup);
+				if(count.length == 0) this.reply(notice.noInput, e.isGroup);
 				else this.reply(`没有找到“${count}”所对应的文件(。_。)`, e.isGroup);
 			}
 		}
@@ -429,7 +434,7 @@ export class pluginManager extends plugin{
 				
 				if(isUpload[e.user_id]["hasMore"]){
 					
-					this.reply("安装失败: 插件已存在，覆盖安装请使用 #覆盖安装多个插件", e.isGroup);
+					this.reply("安装失败: 插件已存在，覆盖安装请使用 #覆盖安装多个插件");
 					
 					cancelDelay = setTimeout(() => {
 						if(isUpload[e.user_id]){
@@ -452,7 +457,7 @@ export class pluginManager extends plugin{
 					
 					delete isUpload[e.user_id];
 					
-					this.reply("安装失败: 插件已存在，覆盖安装请使用 #覆盖安装插件", e.isGroup);
+					this.reply("安装失败: 插件已存在，覆盖安装请使用 #覆盖安装插件");
 					return false;
 				}
 				
@@ -470,15 +475,15 @@ export class pluginManager extends plugin{
 				
 				delete isUpload[e.user_id];
 				
-				if(response.ok) this.reply("安装成功，可使用 #插件列表 检查是否正确安装", e.isGroup);
-				else this.reply("安装失败: 文件下载失败", e.isGroup);
+				if(response.ok) this.reply("安装成功，可使用 #插件列表 检查是否正确安装");
+				else this.reply("安装失败: 文件下载失败");
 			}else{
 				
 				if(isUpload[e.user_id] && !isUpload[e.user_id]["num"]) isUpload[e.user_id]["num"] = 0;
 				isUpload[e.user_id]["num"] += 1;
 				
-				if(response.ok) this.reply("安装成功，请继续发送需要安装的文件或者使用 #结束安装 来完成安装", e.isGroup);
-				else this.reply("安装失败: 文件下载失败，请发送新文件...", e.isGroup);
+				if(response.ok) this.reply("安装成功，请继续发送需要安装的文件或者使用 #结束安装 来完成安装");
+				else this.reply("安装失败: 文件下载失败，请发送新文件...");
 				
 				cancelDelay = setTimeout(() => {
 					if(isUpload[e.user_id]){
@@ -509,14 +514,14 @@ export class pluginManager extends plugin{
 		
 		if(Object.keys(extensionFileData).length <= 0){
 			
-			this.reply("数据不完整，建议使用 #插件管理 初始化数据", e.isGroup);
+			this.reply(notice.noData, e.isGroup);
 			
 			return false;
 		}
 		
 		let count = e.msg.replace(/^#确定删除文件/g, "").trim();
 		
-		if(count.length == 0) this.reply(notInputFile, e.isGroup);
+		if(count.length == 0) this.reply(notice.noInput, e.isGroup);
 		else{
 			let tempFile;
 			if(Object.keys(extensionFileData).includes(count) || (!count.isInteger() && fs.existsSync(`${_extensionPath + count}`))){
@@ -528,7 +533,7 @@ export class pluginManager extends plugin{
 				fs.writeFileSync(`${tempBackDir}tempKeep.bak`, fs.readFileSync(`${_extensionPath + tempFile}`, "utf-8"));
 				
 				fs.unlink(`${_extensionPath + tempFile}`, (error) => {
-					if(error) console.log("删除文件失败了～");
+					if(error) console.log("删除文件失败");
 				});
 				
 				extensionFileDataInit(true);
@@ -574,7 +579,7 @@ export class pluginManager extends plugin{
 		
 		for(let item of tempBackFile){
 			fs.unlink(`${tempBackDir + item}`, (error) => {
-				if(error) console.log("删除文件失败了～");
+				if(error) console.log("删除文件失败");
 			});
 		}
 		
